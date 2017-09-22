@@ -4,8 +4,11 @@ export type KeyOfModules<T extends Module<any, any, any, any, any, any>> = keyof
 export type ModuleOf<T extends Module<any, any, any, any, any, any>, K extends keyof T["modules"]> = T["modules"][K];
 
 export type StateOf<T extends Module<any, any, any, any, any, any>> =
-    {[K in keyof T["state"]]: T["state"][K]; } &
+    {[K in keyof T["state"]["@stateType"]]: T["state"]["@stateType"][K]; } &
     {[K in keyof T["modules"]]: StateOf<T["modules"][K]>; };
+
+export type GettersOf<T extends Module<any, any, any, any, any, any>> =
+    {[K in keyof T["getters"]]: T["getters"][K]["@valueType"]; };
 
 export type Store<TModule extends Module<any, any, any, any, any, any>> =
     _Store<StateOf<TModule>> & { namespace: Namespace<TModule> };
@@ -179,10 +182,6 @@ export function createCreatorContext<TState, TRootState>(): CreatorContext<TStat
     };
 }
 
-export type Getters<T extends any> = T["_getters"];
-export type ActionPayload<T extends any> = T["_actionPayload"];
-export type MutationPayload<T extends any> = T["_mutationPayload"];
-
 export class StoreContext<TModule extends Module<any, any, any, any, any, any>> {
     public readonly path: string;
 
@@ -195,7 +194,7 @@ export class StoreContext<TModule extends Module<any, any, any, any, any, any>> 
         return state;
     }
 
-    public get getters(): Getters<TModule> {
+    public get getters(): GettersOf<TModule> {
         if (typeof Proxy === "undefined") {
             if (this.path === "") {
                 return this.store.getters;
@@ -254,9 +253,7 @@ export class StoreContext<TModule extends Module<any, any, any, any, any, any>> 
     }
 
     private withPath(str: string): string {
-        return this.path +
-            this.path !== "" ? "/" : "" +
-            str;
+        return `${this.path}${this.path !== "" ? "/" : ""}${str}`;
     }
 }
 

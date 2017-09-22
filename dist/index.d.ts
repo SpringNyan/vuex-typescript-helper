@@ -2,9 +2,12 @@ import { Store as _Store, StoreOptions, DispatchOptions, CommitOptions, ActionCo
 export declare type KeyOfModules<T extends Module<any, any, any, any, any, any>> = keyof T["modules"];
 export declare type ModuleOf<T extends Module<any, any, any, any, any, any>, K extends keyof T["modules"]> = T["modules"][K];
 export declare type StateOf<T extends Module<any, any, any, any, any, any>> = {
-    [K in keyof T["state"]]: T["state"][K];
+    [K in keyof T["state"]["@stateType"]]: T["state"]["@stateType"][K];
 } & {
     [K in keyof T["modules"]]: StateOf<T["modules"][K]>;
+};
+export declare type GettersOf<T extends Module<any, any, any, any, any, any>> = {
+    [K in keyof T["getters"]]: T["getters"][K]["@valueType"];
 };
 export declare type Store<TModule extends Module<any, any, any, any, any, any>> = _Store<StateOf<TModule>> & {
     namespace: Namespace<TModule>;
@@ -84,13 +87,10 @@ export declare function createModule<TState, TRootState, TGetters extends {
     [key: string]: Module<any, TRootState, any, any, any, any>;
 }>(module: Partial<Module<TState, TRootState, TGetters, TActions, TMutations, TModules>>): Module<TState, TRootState, TGetters, TActions, TMutations, TModules>;
 export declare function createCreatorContext<TState, TRootState>(): CreatorContext<TState, TRootState>;
-export declare type Getters<T extends any> = T["_getters"];
-export declare type ActionPayload<T extends any> = T["_actionPayload"];
-export declare type MutationPayload<T extends any> = T["_mutationPayload"];
 export declare class StoreContext<TModule extends Module<any, any, any, any, any, any>> {
     readonly path: string;
     readonly state: StateOf<TModule>;
-    readonly getters: Getters<TModule>;
+    readonly getters: GettersOf<TModule>;
     private readonly store;
     private readonly splittedPath;
     constructor(store: Store<TModule>, path?: string);

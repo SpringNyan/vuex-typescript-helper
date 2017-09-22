@@ -99,9 +99,7 @@ var StoreContext = /** @class */ (function () {
         return this.store.commit(this.withPath(type), payload, options);
     };
     StoreContext.prototype.withPath = function (str) {
-        return this.path +
-            this.path !== "" ? "/" : "" +
-            str;
+        return "" + this.path + (this.path !== "" ? "/" : "") + str;
     };
     return StoreContext;
 }());
