@@ -224,7 +224,7 @@ export class StoreContext<TModule extends Module<any, any, any, any, any, any>> 
                     const key = this.withPath(name);
                     return this.store.getters[key];
                 }
-            });
+            }) as GettersOf<TModule>;
         }
     }
 

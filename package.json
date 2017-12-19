@@ -1,6 +1,6 @@
 {
     "name": "vuex-typescript-helper",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "description": "Helper for Vuex with TypeScript",
     "authors": "SpringNyan",
     "license": "MIT",
@@ -15,18 +15,11 @@
         "typescript"
     ],
     "devDependencies": {
-        "@types/chai": "^4.0.4",
-        "@types/mocha": "^2.2.43",
-        "chai": "^4.1.2",
-        "mocha": "^3.5.3",
-        "ts-loader": "^2.3.7",
-        "typescript": "^2.5.2",
-        "vue": "^2.4.4",
-        "vuex": "^2.4.0",
-        "webpack": "^3.6.0"
+        "typescript": "^2.6.2",
+        "vue": "^2.5.11",
+        "vuex": "^3.0.1"
     },
     "scripts": {
-        "build": "tsc -p .",
-        "test": "npm run build && webpack --config test/webpack.config.js && mocha test/test.build.js"
+        "build": "tsc -p ."
     }
 }

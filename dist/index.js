@@ -1,3 +1,4 @@
+"use strict";
 var __assign = (this && this.__assign) || Object.assign || function(t) {
     for (var s, i = 1, n = arguments.length; i < n; i++) {
         s = arguments[i];
@@ -6,23 +7,29 @@ var __assign = (this && this.__assign) || Object.assign || function(t) {
     }
     return t;
 };
-import { Store as _Store } from "vuex";
-export function createState(state) {
+Object.defineProperty(exports, "__esModule", { value: true });
+var vuex_1 = require("vuex");
+function createState(state) {
     return state;
 }
-export function createGetter(getter) {
+exports.createState = createState;
+function createGetter(getter) {
     return getter;
 }
-export function createAction(action) {
+exports.createGetter = createGetter;
+function createAction(action) {
     return action;
 }
-export function createMutation(mutation) {
+exports.createAction = createAction;
+function createMutation(mutation) {
     return mutation;
 }
-export function createModule(module) {
+exports.createMutation = createMutation;
+function createModule(module) {
     return __assign({ namespaced: true, state: {}, getters: {}, actions: {}, mutations: {}, modules: {} }, module);
 }
-export function createCreatorContext() {
+exports.createModule = createModule;
+function createCreatorContext() {
     return {
         createState: createState,
         createGetter: createGetter,
@@ -31,6 +38,7 @@ export function createCreatorContext() {
         createModule: createModule
     };
 }
+exports.createCreatorContext = createCreatorContext;
 var StoreContext = /** @class */ (function () {
     function StoreContext(store, path) {
         var _this = this;
@@ -103,9 +111,9 @@ var StoreContext = /** @class */ (function () {
     };
     return StoreContext;
 }());
-export { StoreContext };
-export function createStore(options) {
-    var store = new _Store(options);
+exports.StoreContext = StoreContext;
+function createStore(options) {
+    var store = new vuex_1.Store(options);
     var context = new StoreContext(store);
     store.namespace = function () {
         var keys = [];
@@ -116,3 +124,4 @@ export function createStore(options) {
     };
     return store;
 }
+exports.createStore = createStore;
