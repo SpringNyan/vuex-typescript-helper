@@ -1,4 +1,4 @@
-import { CommitOptions, DispatchOptions } from "vuex";
+import { Store, CommitOptions, DispatchOptions, ModuleOptions } from "vuex";
 
 // #region Type
 export type StateType<TState> = { "@stateType": TState };
@@ -12,19 +12,15 @@ export type State<TState> = TState | (() => TState);
 // #endregion
 
 // #region Getter
-export type Getter<TState, TGetters extends Getters<any>, TValue> = (
+export type Getter<TState, TStoreGetters extends StoreGetters<any>, TValue> = (
     state: TState,
-    getters: TGetters,
+    getters: TStoreGetters,
     rootState: any,
     rootGetters: any
 ) => TValue;
 
 export type GetterTree = {
     [key: string]: Getter<any, any, any> & ValueType<any>;
-};
-
-export type Getters<TGetterTree extends GetterTree> = {
-    [K in keyof TGetterTree]: TGetterTree[K]["@valueType"]
 };
 // #endregion
 
@@ -42,27 +38,27 @@ export type MutationTree = {
 // #region Action
 export type ActionContext<
     TState,
-    TGetters extends Getters<any>,
+    TStoreGetters extends StoreGetters<any>,
     TMutationTree extends MutationTree,
     TActionTree extends ActionTree
 > = {
     dispatch: Dispatch<TActionTree>;
     commit: Commit<TMutationTree>;
     state: TState;
-    getters: TGetters;
+    getters: TStoreGetters;
     rootState: any;
     rootGetters: any;
 };
 
 export type Action<
     TState,
-    TGetters extends Getters<any>,
+    TStoreGetters extends StoreGetters<any>,
     TMutationTree extends MutationTree,
     TActionTree extends ActionTree,
     TPayload,
     TResult
 > = (
-    injectee: ActionContext<TState, TGetters, TMutationTree, TActionTree>,
+    injectee: ActionContext<TState, TStoreGetters, TMutationTree, TActionTree>,
     payload: TPayload
 ) => TResult | Promise<TResult>;
 
@@ -81,7 +77,6 @@ export type Module<
     TActionTree extends ActionTree,
     TModuleTree extends ModuleTree
 > = {
-    namespaced: true;
     state: State<TState> & StateType<TState>;
     getters: TGetterTree;
     actions: TActionTree;
@@ -95,6 +90,15 @@ export type ModuleTree = {
 // #endregion
 
 // #region Store
+export type StoreState<
+    TModule extends Module<any, any, any, any, any>
+> = TModule["state"]["@stateType"] &
+    { [K in keyof TModule["modules"]]: StoreState<TModule["modules"][K]> };
+
+export type StoreGetters<TGetterTree extends GetterTree> = {
+    [K in keyof TGetterTree]: TGetterTree[K]["@valueType"]
+};
+
 export type Commit<TMutationTree extends MutationTree> = {
     <TType extends keyof TMutationTree>(
         type: TType,
@@ -126,22 +130,14 @@ export interface IModuleBuilder<
     TActionTree extends ActionTree,
     TModuleTree extends ModuleTree
 > {
-    result: Module<
-        TState,
-        TGetterTree,
-        TMutationTree,
-        TActionTree,
-        TModuleTree
-    >;
-
     getter<TKey extends string, TValue>(
         key: TKey,
-        getter: Getter<TState, Getters<TGetterTree>, TValue>
+        getter: Getter<TState, StoreGetters<TGetterTree>, TValue>
     ): IModuleBuilder<
         TState,
         TGetterTree &
             {
-                [K in TKey]: Getter<TState, Getters<TGetterTree>, TValue> &
+                [K in TKey]: Getter<TState, StoreGetters<TGetterTree>, TValue> &
                     ValueType<TValue>
             },
         TMutationTree,
@@ -167,7 +163,7 @@ export interface IModuleBuilder<
         type: TType,
         action: Action<
             TState,
-            Getters<TGetterTree>,
+            StoreGetters<TGetterTree>,
             TMutationTree,
             TActionTree,
             TPayload,
@@ -181,7 +177,7 @@ export interface IModuleBuilder<
             {
                 [K in TType]: Action<
                     TState,
-                    Getters<TGetterTree>,
+                    StoreGetters<TGetterTree>,
                     TMutationTree,
                     TActionTree,
                     TPayload,
@@ -206,5 +202,82 @@ export interface IModuleBuilder<
         TActionTree,
         TModuleTree & { [K in TKey]: TModule }
     >;
+
+    build(): Module<
+        TState,
+        TGetterTree,
+        TMutationTree,
+        TActionTree,
+        TModuleTree
+    >;
+}
+
+export const createModuleBuilder: <TState>(
+    state: State<TState>
+) => IModuleBuilder<TState, {}, {}, {}, {}> = (() => {
+    const builderPrototype: IModuleBuilder<any, any, any, any, any> & {
+        _module: Module<any, any, any, any, any>;
+    } = {
+        _module: undefined as any,
+        getter(key, getter) {
+            this._module.getters[key] = getter;
+            return this;
+        },
+        mutation(type, mutation) {
+            this._module.mutations[type] = mutation;
+            return this;
+        },
+        action(type, action) {
+            this._module.actions[type] = action;
+            return this;
+        },
+        module(key, module) {
+            this._module.modules[key] = Object.assign({}, module, {
+                namespaced: true
+            });
+            return this;
+        },
+        build() {
+            return this._module;
+        }
+    };
+
+    return <TState>(
+        state: State<TState>
+    ): IModuleBuilder<TState, {}, {}, {}, {}> => {
+        const builder: typeof builderPrototype = Object.create(
+            builderPrototype
+        );
+        builder._module = {
+            state,
+            getters: {},
+            mutations: {},
+            actions: {},
+            modules: {}
+        };
+
+        return builder;
+    };
+})();
+// #endregion
+
+// #region StoreHelper
+export interface IStoreHelper<TModule extends Module<any, any, any, any, any>> {
+    <TPath extends keyof TModule["modules"]>(path: TPath): IStoreHelper<
+        TModule["modules"][TPath]
+    >;
+
+    readonly state: StoreState<TModule>;
+    readonly getters: StoreGetters<TModule["getters"]>;
+
+    dispatch: Dispatch<TModule["actions"]>;
+    commit: Commit<TModule["mutations"]>;
+
+    registerModule<TModule extends Module<any, any, any, any, any>>(
+        module: TModule,
+        options?: ModuleOptions
+    ): IStoreHelper<TModule>;
+
+    unregisterModule(): void;
 }
 // #endregion
