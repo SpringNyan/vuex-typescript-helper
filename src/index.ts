@@ -215,39 +215,49 @@ export interface IModuleBuilder<
 export const createModuleBuilder: <TState>(
     state: State<TState>
 ) => IModuleBuilder<TState, {}, {}, {}, {}> = (() => {
-    const builderPrototype: IModuleBuilder<any, any, any, any, any> & {
-        _module: Module<any, any, any, any, any>;
-    } = {
-        _module: undefined as any,
-        getter(key, getter) {
+    class ModuleBuilder {
+        public _module: Module<any, any, any, any, any>;
+
+        public getter(key: string, getter: Getter<any, any, any>) {
             this._module.getters[key] = getter;
             return this;
-        },
-        mutation(type, mutation) {
+        }
+
+        public mutation(type: string, mutation: Mutation<any, any>) {
             this._module.mutations[type] = mutation;
             return this;
-        },
-        action(type, action) {
+        }
+
+        public action(
+            type: string,
+            action: Action<any, any, any, any, any, any>
+        ) {
             this._module.actions[type] = action;
             return this;
-        },
-        module(key, module) {
+        }
+
+        public module(key: string, module: Module<any, any, any, any, any>) {
             this._module.modules[key] = Object.assign({}, module, {
                 namespaced: true
             });
             return this;
-        },
-        build() {
-            return this._module;
         }
-    };
+
+        public build() {
+            return {
+                state: this._module.state,
+                getters: { ...this._module.getters },
+                actions: { ...this._module.actions },
+                mutations: { ...this._module.mutations },
+                modules: { ...this._module.modules }
+            };
+        }
+    }
 
     return <TState>(
         state: State<TState>
     ): IModuleBuilder<TState, {}, {}, {}, {}> => {
-        const builder: typeof builderPrototype = Object.create(
-            builderPrototype
-        );
+        const builder = Object.create(ModuleBuilder.prototype);
         builder._module = {
             state,
             getters: {},
@@ -266,6 +276,17 @@ export interface IStoreHelper<TModule extends Module<any, any, any, any, any>> {
     <TPath extends keyof TModule["modules"]>(path: TPath): IStoreHelper<
         TModule["modules"][TPath]
     >;
+    <
+        TLocalModule extends Module<any, any, any, any, any> = Module<
+            {},
+            {},
+            {},
+            {},
+            {}
+        >
+    >(
+        path: string
+    ): IStoreHelper<TLocalModule>;
 
     readonly state: StoreState<TModule>;
     readonly getters: StoreGetters<TModule["getters"]>;
@@ -279,5 +300,122 @@ export interface IStoreHelper<TModule extends Module<any, any, any, any, any>> {
     ): IStoreHelper<TModule>;
 
     unregisterModule(): void;
+
+    freeze(): IStoreHelper<TModule>;
 }
+
+export const createStoreHelper: <
+    TModule extends Module<any, any, any, any, any>
+>(
+    store: Store<any>
+) => IStoreHelper<TModule> = (() => {
+    class StoreHelper {
+        public _store: Store<any>;
+        public _paths: string[];
+
+        public _isFreeze: boolean = false;
+        private _cachedGetters: StoreGetters<any> | undefined;
+
+        public get state() {
+            let state = this._store.state;
+            this._paths.forEach(path => {
+                state = state[path];
+            });
+
+            return state;
+        }
+
+        public get getters() {
+            if (this._paths.length === 0) {
+                return this._store.getters;
+            }
+
+            if (this._isFreeze && this._cachedGetters) {
+                return this._cachedGetters;
+            }
+
+            const prefix = this._paths.join("/") + "/";
+
+            const getters = {};
+            Object.keys(this._store.getters)
+                .filter(key => key.startsWith(prefix))
+                .forEach(key => {
+                    Object.defineProperty(
+                        getters,
+                        key.substring(prefix.length),
+                        {
+                            get() {
+                                return this._store.getters[key];
+                            },
+                            enumerable: true
+                        }
+                    );
+                });
+
+            if (this._isFreeze) {
+                this._cachedGetters = getters;
+            }
+
+            return getters;
+        }
+
+        public dispatch(type: string, payload: any, options?: DispatchOptions) {
+            if (this._paths.length === 0) {
+                return this._store.dispatch(type, payload, options);
+            } else {
+                const prefix = this._paths.join("/") + "/";
+                return this._store.dispatch(prefix + type, payload, options);
+            }
+        }
+
+        public commit(type: string, payload: any, options?: CommitOptions) {
+            if (this._paths.length === 0) {
+                return this._store.commit(type, payload, options);
+            } else {
+                const prefix = this._paths.join("/") + "/";
+                return this._store.commit(prefix + type, payload, options);
+            }
+        }
+
+        public registerModule(
+            module: Module<any, any, any, any, any>,
+            options?: ModuleOptions
+        ) {
+            this._store.registerModule(this._paths, module, options);
+            return this;
+        }
+
+        public unregisterModule() {
+            this._store.unregisterModule(this._paths);
+        }
+
+        public freeze() {
+            this._isFreeze = true;
+            return this;
+        }
+    }
+
+    function newStoreHelper(store: Store<any>, paths: string[]) {
+        const helper: any = function(this: StoreHelper, path: string) {
+            if (this._isFreeze) {
+                return newStoreHelper(store, [...this._paths, path]);
+            } else {
+                this._paths.push(path);
+                return helper;
+            }
+        };
+
+        helper.__proto__ = StoreHelper.prototype; // TODO: very slow operation
+        helper._store = store;
+        helper._paths = paths;
+
+        return helper;
+    }
+
+    return <TModule extends Module<any, any, any, any, any>>(
+        store: Store<any>
+    ): IStoreHelper<TModule> => {
+        return newStoreHelper(store, []);
+    };
+})();
 // #endregion

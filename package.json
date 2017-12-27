@@ -1,6 +1,6 @@
 {
     "name": "vuex-typescript-helper",
-    "version": "0.1.2",
+    "version": "0.2.0",
     "description": "Helper for Vuex with TypeScript",
     "authors": "SpringNyan",
     "license": "MIT",
