@@ -313,8 +313,10 @@ export const createStoreHelper: <
         public _store: Store<any>;
         public _paths: string[];
 
-        public _isFreeze: boolean = false;
-        private _cachedGetters: StoreGetters<any> | undefined;
+        public _isFreeze: boolean;
+
+        public _storeGetters?: StoreGetters<any>;
+        public _cachedGetters?: StoreGetters<any>;
 
         public get state() {
             let state = this._store.state;
@@ -330,7 +332,12 @@ export const createStoreHelper: <
                 return this._store.getters;
             }
 
-            if (this._isFreeze && this._cachedGetters) {
+            if (this._store.getters !== this._storeGetters) {
+                this._storeGetters = this._store.getters;
+                this._cachedGetters = undefined;
+            }
+
+            if (this._cachedGetters != null) {
                 return this._cachedGetters;
             }
 
@@ -352,9 +359,7 @@ export const createStoreHelper: <
                     );
                 });
 
-            if (this._isFreeze) {
-                this._cachedGetters = getters;
-            }
+            this._cachedGetters = getters;
 
             return getters;
         }
@@ -401,13 +406,17 @@ export const createStoreHelper: <
                 return newStoreHelper(store, [...this._paths, path]);
             } else {
                 this._paths.push(path);
+                this._cachedGetters = undefined;
                 return helper;
             }
         };
-
         helper.__proto__ = StoreHelper.prototype; // TODO: very slow operation
+
         helper._store = store;
         helper._paths = paths;
+        helper._isFreeze = false;
+        helper._storeGetters = undefined;
+        helper._cachedGetters = undefined;
 
         return helper;
     }

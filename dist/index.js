@@ -56,7 +56,6 @@ exports.createModuleBuilder = (function () {
 exports.createStoreHelper = (function () {
     var StoreHelper = /** @class */ (function () {
         function StoreHelper() {
-            this._isFreeze = false;
         }
         Object.defineProperty(StoreHelper.prototype, "state", {
             get: function () {
@@ -74,7 +73,11 @@ exports.createStoreHelper = (function () {
                 if (this._paths.length === 0) {
                     return this._store.getters;
                 }
-                if (this._isFreeze && this._cachedGetters) {
+                if (this._store.getters !== this._storeGetters) {
+                    this._storeGetters = this._store.getters;
+                    this._cachedGetters = undefined;
+                }
+                if (this._cachedGetters != null) {
                     return this._cachedGetters;
                 }
                 var prefix = this._paths.join("/") + "/";
@@ -89,9 +92,7 @@ exports.createStoreHelper = (function () {
                         enumerable: true
                     });
                 });
-                if (this._isFreeze) {
-                    this._cachedGetters = getters;
-                }
+                this._cachedGetters = getters;
                 return getters;
             },
             enumerable: true,
@@ -135,12 +136,16 @@ exports.createStoreHelper = (function () {
             }
             else {
                 this._paths.push(path);
+                this._cachedGetters = undefined;
                 return helper;
             }
         };
         helper.__proto__ = StoreHelper.prototype; // TODO: very slow operation
         helper._store = store;
         helper._paths = paths;
+        helper._isFreeze = false;
+        helper._storeGetters = undefined;
+        helper._cachedGetters = undefined;
         return helper;
     }
     return function (store) {
