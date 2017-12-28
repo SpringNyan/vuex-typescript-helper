@@ -31,7 +31,7 @@ export type Mutation<TState, TPayload> = (
 ) => void;
 
 export type MutationTree = {
-    [key: string]: Mutation<any, any> & PayloadType<any>;
+    [type: string]: Mutation<any, any> & PayloadType<any>;
 };
 // #endregion
 
@@ -63,7 +63,7 @@ export type Action<
 ) => TResult | Promise<TResult>;
 
 export type ActionTree = {
-    [key: string]: Action<any, any, any, any, any, any> &
+    [type: string]: Action<any, any, any, any, any, any> &
         PayloadType<any> &
         ResultType<any>;
 };
@@ -81,7 +81,7 @@ export type Module<
     getters: TGetterTree;
     actions: TActionTree;
     mutations: TMutationTree;
-    modules: ModuleTree;
+    modules: TModuleTree;
 };
 
 export type ModuleTree = {

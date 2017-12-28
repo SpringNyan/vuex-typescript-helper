@@ -18,7 +18,7 @@ export declare type GetterTree = {
 };
 export declare type Mutation<TState, TPayload> = (state: TState, payload: TPayload) => void;
 export declare type MutationTree = {
-    [key: string]: Mutation<any, any> & PayloadType<any>;
+    [type: string]: Mutation<any, any> & PayloadType<any>;
 };
 export declare type ActionContext<TState, TStoreGetters extends StoreGetters<any>, TMutationTree extends MutationTree, TActionTree extends ActionTree> = {
     dispatch: Dispatch<TActionTree>;
@@ -30,14 +30,14 @@ export declare type ActionContext<TState, TStoreGetters extends StoreGetters<any
 };
 export declare type Action<TState, TStoreGetters extends StoreGetters<any>, TMutationTree extends MutationTree, TActionTree extends ActionTree, TPayload, TResult> = (injectee: ActionContext<TState, TStoreGetters, TMutationTree, TActionTree>, payload: TPayload) => TResult | Promise<TResult>;
 export declare type ActionTree = {
-    [key: string]: Action<any, any, any, any, any, any> & PayloadType<any> & ResultType<any>;
+    [type: string]: Action<any, any, any, any, any, any> & PayloadType<any> & ResultType<any>;
 };
 export declare type Module<TState, TGetterTree extends GetterTree, TMutationTree extends MutationTree, TActionTree extends ActionTree, TModuleTree extends ModuleTree> = {
     state: State<TState> & StateType<TState>;
     getters: TGetterTree;
     actions: TActionTree;
     mutations: TMutationTree;
-    modules: ModuleTree;
+    modules: TModuleTree;
 };
 export declare type ModuleTree = {
     [key: string]: Module<any, any, any, any, any>;
