@@ -1,7 +1,5 @@
 import { Store, CommitOptions, DispatchOptions, ModuleOptions } from "vuex";
 
-export type SelfPick<T> = { [K in keyof T]: T[K] };
-
 // #region Type
 export type StateType<TState> = { "@stateType": TState };
 export type ValueType<TValue> = { "@valueType": TValue };
@@ -131,7 +129,7 @@ export type ModuleBuilder<
     TMutationTree extends MutationTree,
     TActionTree extends ActionTree,
     TModuleTree extends ModuleTree
-> = SelfPick<{
+> = {
     getter<TKey extends string, TValue>(
         key: TKey,
         getter: Getter<TState, StoreGetters<TGetterTree>, TValue>
@@ -212,7 +210,7 @@ export type ModuleBuilder<
         TActionTree,
         TModuleTree
     >;
-}>;
+};
 
 export const createModuleBuilder: <TState>(
     state: State<TState>
@@ -274,9 +272,7 @@ export const createModuleBuilder: <TState>(
 // #endregion
 
 // #region StoreHelper
-export type StoreHelper<
-    TModule extends Module<any, any, any, any, any>
-> = SelfPick<{
+export type StoreHelper<TModule extends Module<any, any, any, any, any>> = {
     <TPath extends keyof TModule["modules"]>(path: TPath): StoreHelper<
         TModule["modules"][TPath]
     >;
@@ -307,7 +303,7 @@ export type StoreHelper<
     unregisterModule(): void;
 
     freeze(): StoreHelper<TModule>;
-}>;
+};
 
 export const createStoreHelper: <
     TModule extends Module<any, any, any, any, any>

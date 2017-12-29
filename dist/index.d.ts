@@ -1,7 +1,4 @@
 import { Store, CommitOptions, DispatchOptions, ModuleOptions } from "vuex";
-export declare type SelfPick<T> = {
-    [K in keyof T]: T[K];
-};
 export declare type StateType<TState> = {
     "@stateType": TState;
 };
@@ -67,7 +64,7 @@ export declare type Dispatch<TActionTree extends ActionTree> = {
         root: true;
     }): Promise<any>;
 };
-export declare type ModuleBuilder<TState, TGetterTree extends GetterTree, TMutationTree extends MutationTree, TActionTree extends ActionTree, TModuleTree extends ModuleTree> = SelfPick<{
+export declare type ModuleBuilder<TState, TGetterTree extends GetterTree, TMutationTree extends MutationTree, TActionTree extends ActionTree, TModuleTree extends ModuleTree> = {
     getter<TKey extends string, TValue>(key: TKey, getter: Getter<TState, StoreGetters<TGetterTree>, TValue>): ModuleBuilder<TState, TGetterTree & {
         [K in TKey]: Getter<TState, StoreGetters<TGetterTree>, TValue> & ValueType<TValue>;
     }, TMutationTree, TActionTree, TModuleTree>;
@@ -81,9 +78,9 @@ export declare type ModuleBuilder<TState, TGetterTree extends GetterTree, TMutat
         [K in TKey]: TModule;
     }>;
     build(): Module<TState, TGetterTree, TMutationTree, TActionTree, TModuleTree>;
-}>;
+};
 export declare const createModuleBuilder: <TState>(state: State<TState>) => ModuleBuilder<TState, {}, {}, {}, {}>;
-export declare type StoreHelper<TModule extends Module<any, any, any, any, any>> = SelfPick<{
+export declare type StoreHelper<TModule extends Module<any, any, any, any, any>> = {
     <TPath extends keyof TModule["modules"]>(path: TPath): StoreHelper<TModule["modules"][TPath]>;
     readonly state: StoreState<TModule>;
     readonly getters: StoreGetters<TModule["getters"]>;
@@ -93,5 +90,5 @@ export declare type StoreHelper<TModule extends Module<any, any, any, any, any>>
     registerModule<TModule extends Module<any, any, any, any, any>>(module: TModule, options?: ModuleOptions): StoreHelper<TModule>;
     unregisterModule(): void;
     freeze(): StoreHelper<TModule>;
-}>;
+};
 export declare const createStoreHelper: <TModule extends Module<any, any, any, any, any>>(store: Store<any>) => StoreHelper<TModule>;
