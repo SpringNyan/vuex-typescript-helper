@@ -301,8 +301,6 @@ export type StoreHelper<TModule extends Module<any, any, any, any, any>> = {
     ): StoreHelper<TModule>;
 
     unregisterModule(): void;
-
-    freeze(): StoreHelper<TModule>;
 };
 
 export const createStoreHelper: <
@@ -313,8 +311,6 @@ export const createStoreHelper: <
     class _StoreHelper {
         public _store: Store<any>;
         public _paths: string[];
-
-        public _isFreeze: boolean;
 
         public _storeGetters?: StoreGetters<any>;
         public _cachedGetters?: StoreGetters<any>;
@@ -398,28 +394,18 @@ export const createStoreHelper: <
         public unregisterModule() {
             this._store.unregisterModule(this._paths);
         }
-
-        public freeze() {
-            this._isFreeze = true;
-            return this;
-        }
     }
+
+    (_StoreHelper.prototype as any).__proto__ = Function.prototype;
 
     function newStoreHelper(store: Store<any>, paths: string[]) {
         const helper: any = function(path: string) {
-            if (helper._isFreeze) {
-                return newStoreHelper(store, [...helper._paths, path]);
-            } else {
-                helper._paths.push(path);
-                helper._cachedGetters = undefined;
-                return helper;
-            }
+            return newStoreHelper(store, [...helper._paths, path]);
         };
         helper.__proto__ = _StoreHelper.prototype;
 
         helper._store = store;
         helper._paths = paths;
-        helper._isFreeze = false;
         helper._storeGetters = undefined;
         helper._cachedGetters = undefined;
 
