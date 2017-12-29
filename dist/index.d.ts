@@ -1,4 +1,7 @@
 import { Store, CommitOptions, DispatchOptions, ModuleOptions } from "vuex";
+export declare type SelfPick<T> = {
+    [K in keyof T]: T[K];
+};
 export declare type StateType<TState> = {
     "@stateType": TState;
 };
@@ -64,31 +67,31 @@ export declare type Dispatch<TActionTree extends ActionTree> = {
         root: true;
     }): Promise<any>;
 };
-export interface IModuleBuilder<TState, TGetterTree extends GetterTree, TMutationTree extends MutationTree, TActionTree extends ActionTree, TModuleTree extends ModuleTree> {
-    getter<TKey extends string, TValue>(key: TKey, getter: Getter<TState, StoreGetters<TGetterTree>, TValue>): IModuleBuilder<TState, TGetterTree & {
+export declare type ModuleBuilder<TState, TGetterTree extends GetterTree, TMutationTree extends MutationTree, TActionTree extends ActionTree, TModuleTree extends ModuleTree> = SelfPick<{
+    getter<TKey extends string, TValue>(key: TKey, getter: Getter<TState, StoreGetters<TGetterTree>, TValue>): ModuleBuilder<TState, TGetterTree & {
         [K in TKey]: Getter<TState, StoreGetters<TGetterTree>, TValue> & ValueType<TValue>;
     }, TMutationTree, TActionTree, TModuleTree>;
-    mutation<TType extends string, TPayload>(type: TType, mutation: Mutation<TState, TPayload>): IModuleBuilder<TState, TGetterTree, TMutationTree & {
+    mutation<TType extends string, TPayload>(type: TType, mutation: Mutation<TState, TPayload>): ModuleBuilder<TState, TGetterTree, TMutationTree & {
         [K in TType]: Mutation<TState, TPayload> & PayloadType<TPayload>;
     }, TActionTree, TModuleTree>;
-    action<TType extends string, TPayload, TResult>(type: TType, action: Action<TState, StoreGetters<TGetterTree>, TMutationTree, TActionTree, TPayload, TResult>): IModuleBuilder<TState, TGetterTree, TMutationTree, TActionTree & {
+    action<TType extends string, TPayload, TResult>(type: TType, action: Action<TState, StoreGetters<TGetterTree>, TMutationTree, TActionTree, TPayload, TResult>): ModuleBuilder<TState, TGetterTree, TMutationTree, TActionTree & {
         [K in TType]: Action<TState, StoreGetters<TGetterTree>, TMutationTree, TActionTree, TPayload, TResult> & PayloadType<TPayload> & ResultType<TResult>;
     }, TModuleTree>;
-    module<TKey extends string, TModule extends Module<any, any, any, any, any>>(key: TKey, module: TModule): IModuleBuilder<TState, TGetterTree, TMutationTree, TActionTree, TModuleTree & {
+    module<TKey extends string, TModule extends Module<any, any, any, any, any>>(key: TKey, module: TModule): ModuleBuilder<TState, TGetterTree, TMutationTree, TActionTree, TModuleTree & {
         [K in TKey]: TModule;
     }>;
     build(): Module<TState, TGetterTree, TMutationTree, TActionTree, TModuleTree>;
-}
-export declare const createModuleBuilder: <TState>(state: State<TState>) => IModuleBuilder<TState, {}, {}, {}, {}>;
-export interface IStoreHelper<TModule extends Module<any, any, any, any, any>> {
-    <TPath extends keyof TModule["modules"]>(path: TPath): IStoreHelper<TModule["modules"][TPath]>;
-    <TLocalModule extends Module<any, any, any, any, any> = Module<{}, {}, {}, {}, {}>>(path: string): IStoreHelper<TLocalModule>;
+}>;
+export declare const createModuleBuilder: <TState>(state: State<TState>) => ModuleBuilder<TState, {}, {}, {}, {}>;
+export declare type StoreHelper<TModule extends Module<any, any, any, any, any>> = SelfPick<{
+    <TPath extends keyof TModule["modules"]>(path: TPath): StoreHelper<TModule["modules"][TPath]>;
     readonly state: StoreState<TModule>;
     readonly getters: StoreGetters<TModule["getters"]>;
+    path<TLocalModule extends Module<any, any, any, any, any> = Module<{}, {}, {}, {}, {}>>(path: string): StoreHelper<TLocalModule>;
     dispatch: Dispatch<TModule["actions"]>;
     commit: Commit<TModule["mutations"]>;
-    registerModule<TModule extends Module<any, any, any, any, any>>(module: TModule, options?: ModuleOptions): IStoreHelper<TModule>;
+    registerModule<TModule extends Module<any, any, any, any, any>>(module: TModule, options?: ModuleOptions): StoreHelper<TModule>;
     unregisterModule(): void;
-    freeze(): IStoreHelper<TModule>;
-}
-export declare const createStoreHelper: <TModule extends Module<any, any, any, any, any>>(store: Store<any>) => IStoreHelper<TModule>;
+    freeze(): StoreHelper<TModule>;
+}>;
+export declare const createStoreHelper: <TModule extends Module<any, any, any, any, any>>(store: Store<any>) => StoreHelper<TModule>;

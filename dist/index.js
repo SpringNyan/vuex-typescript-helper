@@ -9,28 +9,28 @@ var __assign = (this && this.__assign) || Object.assign || function(t) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createModuleBuilder = (function () {
-    var ModuleBuilder = /** @class */ (function () {
-        function ModuleBuilder() {
+    var _ModuleBuilder = /** @class */ (function () {
+        function _ModuleBuilder() {
         }
-        ModuleBuilder.prototype.getter = function (key, getter) {
+        _ModuleBuilder.prototype.getter = function (key, getter) {
             this._module.getters[key] = getter;
             return this;
         };
-        ModuleBuilder.prototype.mutation = function (type, mutation) {
+        _ModuleBuilder.prototype.mutation = function (type, mutation) {
             this._module.mutations[type] = mutation;
             return this;
         };
-        ModuleBuilder.prototype.action = function (type, action) {
+        _ModuleBuilder.prototype.action = function (type, action) {
             this._module.actions[type] = action;
             return this;
         };
-        ModuleBuilder.prototype.module = function (key, module) {
+        _ModuleBuilder.prototype.module = function (key, module) {
             this._module.modules[key] = Object.assign({}, module, {
                 namespaced: true
             });
             return this;
         };
-        ModuleBuilder.prototype.build = function () {
+        _ModuleBuilder.prototype.build = function () {
             return {
                 state: this._module.state,
                 getters: __assign({}, this._module.getters),
@@ -39,10 +39,10 @@ exports.createModuleBuilder = (function () {
                 modules: __assign({}, this._module.modules)
             };
         };
-        return ModuleBuilder;
+        return _ModuleBuilder;
     }());
     return function (state) {
-        var builder = Object.create(ModuleBuilder.prototype);
+        var builder = Object.create(_ModuleBuilder.prototype);
         builder._module = {
             state: state,
             getters: {},
@@ -54,10 +54,10 @@ exports.createModuleBuilder = (function () {
     };
 })();
 exports.createStoreHelper = (function () {
-    var StoreHelper = /** @class */ (function () {
-        function StoreHelper() {
+    var _StoreHelper = /** @class */ (function () {
+        function _StoreHelper() {
         }
-        Object.defineProperty(StoreHelper.prototype, "state", {
+        Object.defineProperty(_StoreHelper.prototype, "state", {
             get: function () {
                 var state = this._store.state;
                 this._paths.forEach(function (path) {
@@ -68,7 +68,7 @@ exports.createStoreHelper = (function () {
             enumerable: true,
             configurable: true
         });
-        Object.defineProperty(StoreHelper.prototype, "getters", {
+        Object.defineProperty(_StoreHelper.prototype, "getters", {
             get: function () {
                 if (this._paths.length === 0) {
                     return this._store.getters;
@@ -98,7 +98,10 @@ exports.createStoreHelper = (function () {
             enumerable: true,
             configurable: true
         });
-        StoreHelper.prototype.dispatch = function (type, payload, options) {
+        _StoreHelper.prototype.path = function (path) {
+            return this(path);
+        };
+        _StoreHelper.prototype.dispatch = function (type, payload, options) {
             if (this._paths.length === 0) {
                 return this._store.dispatch(type, payload, options);
             }
@@ -107,7 +110,7 @@ exports.createStoreHelper = (function () {
                 return this._store.dispatch(prefix + type, payload, options);
             }
         };
-        StoreHelper.prototype.commit = function (type, payload, options) {
+        _StoreHelper.prototype.commit = function (type, payload, options) {
             if (this._paths.length === 0) {
                 return this._store.commit(type, payload, options);
             }
@@ -116,18 +119,18 @@ exports.createStoreHelper = (function () {
                 return this._store.commit(prefix + type, payload, options);
             }
         };
-        StoreHelper.prototype.registerModule = function (module, options) {
+        _StoreHelper.prototype.registerModule = function (module, options) {
             this._store.registerModule(this._paths, module, options);
             return this;
         };
-        StoreHelper.prototype.unregisterModule = function () {
+        _StoreHelper.prototype.unregisterModule = function () {
             this._store.unregisterModule(this._paths);
         };
-        StoreHelper.prototype.freeze = function () {
+        _StoreHelper.prototype.freeze = function () {
             this._isFreeze = true;
             return this;
         };
-        return StoreHelper;
+        return _StoreHelper;
     }());
     function newStoreHelper(store, paths) {
         var helper = function (path) {
@@ -140,7 +143,7 @@ exports.createStoreHelper = (function () {
                 return helper;
             }
         };
-        helper.__proto__ = StoreHelper.prototype; // TODO: very slow operation
+        helper.__proto__ = _StoreHelper.prototype;
         helper._store = store;
         helper._paths = paths;
         helper._isFreeze = false;
