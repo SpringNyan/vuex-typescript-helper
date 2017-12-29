@@ -99,7 +99,7 @@ exports.createStoreHelper = (function () {
             configurable: true
         });
         _StoreHelper.prototype.path = function (path) {
-            return this(path);
+            return newStoreHelper(this._store, this._paths.concat([path]), false);
         };
         _StoreHelper.prototype.dispatch = function (type, payload, options) {
             if (this._paths.length === 0) {
@@ -129,19 +129,31 @@ exports.createStoreHelper = (function () {
         return _StoreHelper;
     }());
     _StoreHelper.prototype.__proto__ = Function.prototype;
-    function newStoreHelper(store, paths) {
+    var storeHelperCaches = new Map();
+    function newStoreHelper(store, paths, cached) {
+        if (!storeHelperCaches.has(store)) {
+            storeHelperCaches.set(store, {});
+        }
+        var caches = storeHelperCaches.get(store);
+        var namespace = paths.join("/");
+        if (caches[namespace] != null) {
+            return caches[namespace];
+        }
         var helper = function (path) {
-            return newStoreHelper(store, helper._paths.concat([path]));
+            return newStoreHelper(store, helper._paths.concat([path]), true);
         };
         helper.__proto__ = _StoreHelper.prototype;
         helper._store = store;
         helper._paths = paths;
         helper._storeGetters = undefined;
         helper._cachedGetters = undefined;
+        if (cached) {
+            caches[namespace] = helper;
+        }
         return helper;
     }
     return function (store) {
-        return newStoreHelper(store, []);
+        return newStoreHelper(store, [], true);
     };
 })();
 // #endregion

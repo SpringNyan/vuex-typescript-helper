@@ -362,7 +362,7 @@ export const createStoreHelper: <
         }
 
         public path(path: string) {
-            return (this as any)(path);
+            return newStoreHelper(this._store, [...this._paths, path], false);
         }
 
         public dispatch(type: string, payload: any, options?: DispatchOptions) {
@@ -398,9 +398,28 @@ export const createStoreHelper: <
 
     (_StoreHelper.prototype as any).__proto__ = Function.prototype;
 
-    function newStoreHelper(store: Store<any>, paths: string[]) {
+    const storeHelperCaches = new Map<
+        Store<any>,
+        { [namespace: string]: StoreHelper<any> }
+    >();
+
+    function newStoreHelper(
+        store: Store<any>,
+        paths: string[],
+        cached: boolean
+    ) {
+        if (!storeHelperCaches.has(store)) {
+            storeHelperCaches.set(store, {});
+        }
+        const caches = storeHelperCaches.get(store)!;
+
+        const namespace = paths.join("/");
+        if (caches[namespace] != null) {
+            return caches[namespace];
+        }
+
         const helper: any = function(path: string) {
-            return newStoreHelper(store, [...helper._paths, path]);
+            return newStoreHelper(store, [...helper._paths, path], true);
         };
         helper.__proto__ = _StoreHelper.prototype;
 
@@ -409,13 +428,17 @@ export const createStoreHelper: <
         helper._storeGetters = undefined;
         helper._cachedGetters = undefined;
 
+        if (cached) {
+            caches[namespace] = helper;
+        }
+
         return helper;
     }
 
     return <TModule extends Module<any, any, any, any, any>>(
         store: Store<any>
     ): StoreHelper<TModule> => {
-        return newStoreHelper(store, []);
+        return newStoreHelper(store, [], true);
     };
 })();
 // #endregion
