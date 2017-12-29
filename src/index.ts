@@ -401,12 +401,12 @@ export const createStoreHelper: <
     }
 
     function newStoreHelper(store: Store<any>, paths: string[]) {
-        const helper: any = function(this: StoreHelper, path: string) {
-            if (this._isFreeze) {
-                return newStoreHelper(store, [...this._paths, path]);
+        const helper: any = function(path: string) {
+            if (helper._isFreeze) {
+                return newStoreHelper(store, [...helper._paths, path]);
             } else {
-                this._paths.push(path);
-                this._cachedGetters = undefined;
+                helper._paths.push(path);
+                helper._cachedGetters = undefined;
                 return helper;
             }
         };
@@ -418,7 +418,7 @@ export const createStoreHelper: <
         helper._storeGetters = undefined;
         helper._cachedGetters = undefined;
 
-        return helper.bind(helper);
+        return helper;
     }
 
     return <TModule extends Module<any, any, any, any, any>>(

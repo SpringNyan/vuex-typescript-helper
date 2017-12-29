@@ -131,12 +131,12 @@ exports.createStoreHelper = (function () {
     }());
     function newStoreHelper(store, paths) {
         var helper = function (path) {
-            if (this._isFreeze) {
-                return newStoreHelper(store, this._paths.concat([path]));
+            if (helper._isFreeze) {
+                return newStoreHelper(store, helper._paths.concat([path]));
             }
             else {
-                this._paths.push(path);
-                this._cachedGetters = undefined;
+                helper._paths.push(path);
+                helper._cachedGetters = undefined;
                 return helper;
             }
         };
@@ -146,7 +146,7 @@ exports.createStoreHelper = (function () {
         helper._isFreeze = false;
         helper._storeGetters = undefined;
         helper._cachedGetters = undefined;
-        return helper.bind(helper);
+        return helper;
     }
     return function (store) {
         return newStoreHelper(store, []);
