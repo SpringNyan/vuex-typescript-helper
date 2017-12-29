@@ -1,5 +1,7 @@
 import { Store, CommitOptions, DispatchOptions, ModuleOptions } from "vuex";
 
+export type SelfPick<T> = { [K in keyof T]: T[K] };
+
 // #region Type
 export type StateType<TState> = { "@stateType": TState };
 export type ValueType<TValue> = { "@valueType": TValue };
@@ -123,17 +125,17 @@ export type Dispatch<TActionTree extends ActionTree> = {
 // #endregion
 
 // #region ModuleBuilder
-export interface IModuleBuilder<
+export type ModuleBuilder<
     TState,
     TGetterTree extends GetterTree,
     TMutationTree extends MutationTree,
     TActionTree extends ActionTree,
     TModuleTree extends ModuleTree
-> {
+> = SelfPick<{
     getter<TKey extends string, TValue>(
         key: TKey,
         getter: Getter<TState, StoreGetters<TGetterTree>, TValue>
-    ): IModuleBuilder<
+    ): ModuleBuilder<
         TState,
         TGetterTree &
             {
@@ -148,7 +150,7 @@ export interface IModuleBuilder<
     mutation<TType extends string, TPayload>(
         type: TType,
         mutation: Mutation<TState, TPayload>
-    ): IModuleBuilder<
+    ): ModuleBuilder<
         TState,
         TGetterTree,
         TMutationTree &
@@ -169,7 +171,7 @@ export interface IModuleBuilder<
             TPayload,
             TResult
         >
-    ): IModuleBuilder<
+    ): ModuleBuilder<
         TState,
         TGetterTree,
         TMutationTree,
@@ -195,7 +197,7 @@ export interface IModuleBuilder<
     >(
         key: TKey,
         module: TModule
-    ): IModuleBuilder<
+    ): ModuleBuilder<
         TState,
         TGetterTree,
         TMutationTree,
@@ -210,12 +212,12 @@ export interface IModuleBuilder<
         TActionTree,
         TModuleTree
     >;
-}
+}>;
 
 export const createModuleBuilder: <TState>(
     state: State<TState>
-) => IModuleBuilder<TState, {}, {}, {}, {}> = (() => {
-    class ModuleBuilder {
+) => ModuleBuilder<TState, {}, {}, {}, {}> = (() => {
+    class _ModuleBuilder {
         public _module: Module<any, any, any, any, any>;
 
         public getter(key: string, getter: Getter<any, any, any>) {
@@ -256,8 +258,8 @@ export const createModuleBuilder: <TState>(
 
     return <TState>(
         state: State<TState>
-    ): IModuleBuilder<TState, {}, {}, {}, {}> => {
-        const builder = Object.create(ModuleBuilder.prototype);
+    ): ModuleBuilder<TState, {}, {}, {}, {}> => {
+        const builder = Object.create(_ModuleBuilder.prototype);
         builder._module = {
             state,
             getters: {},
@@ -272,11 +274,17 @@ export const createModuleBuilder: <TState>(
 // #endregion
 
 // #region StoreHelper
-export interface IStoreHelper<TModule extends Module<any, any, any, any, any>> {
-    <TPath extends keyof TModule["modules"]>(path: TPath): IStoreHelper<
+export type StoreHelper<
+    TModule extends Module<any, any, any, any, any>
+> = SelfPick<{
+    <TPath extends keyof TModule["modules"]>(path: TPath): StoreHelper<
         TModule["modules"][TPath]
     >;
-    <
+
+    readonly state: StoreState<TModule>;
+    readonly getters: StoreGetters<TModule["getters"]>;
+
+    path<
         TLocalModule extends Module<any, any, any, any, any> = Module<
             {},
             {},
@@ -286,10 +294,7 @@ export interface IStoreHelper<TModule extends Module<any, any, any, any, any>> {
         >
     >(
         path: string
-    ): IStoreHelper<TLocalModule>;
-
-    readonly state: StoreState<TModule>;
-    readonly getters: StoreGetters<TModule["getters"]>;
+    ): StoreHelper<TLocalModule>;
 
     dispatch: Dispatch<TModule["actions"]>;
     commit: Commit<TModule["mutations"]>;
@@ -297,19 +302,19 @@ export interface IStoreHelper<TModule extends Module<any, any, any, any, any>> {
     registerModule<TModule extends Module<any, any, any, any, any>>(
         module: TModule,
         options?: ModuleOptions
-    ): IStoreHelper<TModule>;
+    ): StoreHelper<TModule>;
 
     unregisterModule(): void;
 
-    freeze(): IStoreHelper<TModule>;
-}
+    freeze(): StoreHelper<TModule>;
+}>;
 
 export const createStoreHelper: <
     TModule extends Module<any, any, any, any, any>
 >(
     store: Store<any>
-) => IStoreHelper<TModule> = (() => {
-    class StoreHelper {
+) => StoreHelper<TModule> = (() => {
+    class _StoreHelper {
         public _store: Store<any>;
         public _paths: string[];
 
@@ -364,6 +369,10 @@ export const createStoreHelper: <
             return getters;
         }
 
+        public path(path: string) {
+            return (this as any)(path);
+        }
+
         public dispatch(type: string, payload: any, options?: DispatchOptions) {
             if (this._paths.length === 0) {
                 return this._store.dispatch(type, payload, options);
@@ -410,7 +419,7 @@ export const createStoreHelper: <
                 return helper;
             }
         };
-        helper.__proto__ = StoreHelper.prototype; // TODO: very slow operation
+        helper.__proto__ = _StoreHelper.prototype;
 
         helper._store = store;
         helper._paths = paths;
@@ -423,7 +432,7 @@ export const createStoreHelper: <
 
     return <TModule extends Module<any, any, any, any, any>>(
         store: Store<any>
-    ): IStoreHelper<TModule> => {
+    ): StoreHelper<TModule> => {
         return newStoreHelper(store, []);
     };
 })();
