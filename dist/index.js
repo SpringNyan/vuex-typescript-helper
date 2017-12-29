@@ -126,27 +126,16 @@ exports.createStoreHelper = (function () {
         _StoreHelper.prototype.unregisterModule = function () {
             this._store.unregisterModule(this._paths);
         };
-        _StoreHelper.prototype.freeze = function () {
-            this._isFreeze = true;
-            return this;
-        };
         return _StoreHelper;
     }());
+    _StoreHelper.prototype.__proto__ = Function.prototype;
     function newStoreHelper(store, paths) {
         var helper = function (path) {
-            if (helper._isFreeze) {
-                return newStoreHelper(store, helper._paths.concat([path]));
-            }
-            else {
-                helper._paths.push(path);
-                helper._cachedGetters = undefined;
-                return helper;
-            }
+            return newStoreHelper(store, helper._paths.concat([path]));
         };
         helper.__proto__ = _StoreHelper.prototype;
         helper._store = store;
         helper._paths = paths;
-        helper._isFreeze = false;
         helper._storeGetters = undefined;
         helper._cachedGetters = undefined;
         return helper;

@@ -89,6 +89,5 @@ export declare type StoreHelper<TModule extends Module<any, any, any, any, any>>
     commit: Commit<TModule["mutations"]>;
     registerModule<TModule extends Module<any, any, any, any, any>>(module: TModule, options?: ModuleOptions): StoreHelper<TModule>;
     unregisterModule(): void;
-    freeze(): StoreHelper<TModule>;
 };
 export declare const createStoreHelper: <TModule extends Module<any, any, any, any, any>>(store: Store<any>) => StoreHelper<TModule>;
