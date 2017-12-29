@@ -418,7 +418,7 @@ export const createStoreHelper: <
         helper._storeGetters = undefined;
         helper._cachedGetters = undefined;
 
-        return helper;
+        return helper.bind(helper);
     }
 
     return <TModule extends Module<any, any, any, any, any>>(

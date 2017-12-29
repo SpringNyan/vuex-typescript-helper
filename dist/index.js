@@ -146,7 +146,7 @@ exports.createStoreHelper = (function () {
         helper._isFreeze = false;
         helper._storeGetters = undefined;
         helper._cachedGetters = undefined;
-        return helper;
+        return helper.bind(helper);
     }
     return function (store) {
         return newStoreHelper(store, []);
