@@ -10,12 +10,24 @@ const isProxySupported = typeof Proxy === "function";
 export type StoreState<
   TModule extends Module<any, any, any, any, any>
 > = ModuleState<TModule["state"]> &
-  { [K in keyof TModule["modules"]]: StoreState<TModule["modules"][K]> };
+  {
+    [K in keyof TModule["modules"]]: TModule["modules"][K] extends Module<
+      any,
+      any,
+      any,
+      any,
+      any
+    >
+      ? StoreState<TModule["modules"][K]>
+      : never
+  };
 
 export type StoreHelper<TModule extends Module<any, any, any, any, any>> = {
-  <TPath extends keyof TModule["modules"]>(path: TPath): StoreHelper<
-    TModule["modules"][TPath]
-  >;
+  <TPath extends keyof TModule["modules"]>(
+    path: TPath
+  ): TModule["modules"][TPath] extends Module<any, any, any, any, any>
+    ? StoreHelper<TModule["modules"][TPath]>
+    : never;
 
   readonly state: StoreState<TModule>;
   readonly getters: GetterValueTree<TModule["getters"]>;
