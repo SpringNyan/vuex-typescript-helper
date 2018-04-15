@@ -1,10 +1,9 @@
 import { Store, DispatchOptions, CommitOptions, ModuleOptions } from "vuex";
 
-import { Action, ActionTree, Dispatch } from "./action";
-import { Getter, GetterTree, GetterValueTree } from "./getter";
-import { Module, ModuleTree, ModuleState } from "./module";
-import { Mutation, MutationTree, Commit } from "./mutation";
-import { State } from "./state";
+import { Dispatch } from "./action";
+import { GetterValueTree } from "./getter";
+import { Module, ModuleState } from "./module";
+import { Commit } from "./mutation";
 
 const isProxySupported = typeof Proxy === "function";
 
@@ -78,7 +77,7 @@ class _StoreHelper {
         this._getters = new Proxy(
           {},
           {
-            get: (target: any, p: string, receiver: any) => {
+            get: (target: any, p: string) => {
               const path = [...this._paths, p].join("/");
               return this._store.getters[path];
             }
