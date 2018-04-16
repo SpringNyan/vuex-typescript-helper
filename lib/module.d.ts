@@ -13,7 +13,7 @@ export declare type ModuleTree = {
     [key: string]: Module<any, any, any, any, any>;
 };
 export declare type ModuleState<TModule extends Module<any, any, any, any, any>> = TModule extends Module<infer TState, any, any, any, any> ? TState : never;
-export declare type ModuleBuilder<TState, TGetterTree extends GetterTree, TMutationTree extends MutationTree, TActionTree extends ActionTree, TModuleTree extends ModuleTree> = {
+export interface ModuleBuilder<TState, TGetterTree extends GetterTree, TMutationTree extends MutationTree, TActionTree extends ActionTree, TModuleTree extends ModuleTree> {
     getter<TKey extends string, TValue>(key: TKey, getter: Getter<TState, GetterValueTree<TGetterTree>, TValue>): ModuleBuilder<TState, TGetterTree & {
         [K in TKey]: Getter<TState, GetterValueTree<TGetterTree>, TValue>;
     }, TMutationTree, TActionTree, TModuleTree>;
@@ -27,5 +27,5 @@ export declare type ModuleBuilder<TState, TGetterTree extends GetterTree, TMutat
         [K in TKey]: TModule;
     }>;
     build(): Module<TState, TGetterTree, TMutationTree, TActionTree, TModuleTree>;
-};
+}
 export declare function createModuleBuilder<TState>(state: State<TState>): ModuleBuilder<TState, {}, {}, {}, {}>;
