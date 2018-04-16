@@ -55,7 +55,7 @@ export type StoreHelper<TModule extends Module<any, any, any, any, any>> = {
   unregisterModule(): StoreHelper<TModule>;
 };
 
-class _StoreHelper {
+class _StoreHelper extends Function {
   private _paths!: string[];
 
   private _store!: Store<any>;
@@ -65,7 +65,7 @@ class _StoreHelper {
 
   public get state() {
     let state = this._store.state;
-    this._paths.forEach(path => {
+    this._paths.forEach((path) => {
       state = state[path];
     });
 
@@ -100,8 +100,8 @@ class _StoreHelper {
 
         const getters = {};
         Object.keys(this._store.getters)
-          .filter(key => key.startsWith(prefix))
-          .forEach(key => {
+          .filter((key) => key.startsWith(prefix))
+          .forEach((key) => {
             Object.defineProperty(getters, key.substring(prefix.length), {
               get: () => {
                 return this._store.getters[key];
@@ -157,21 +157,10 @@ function newStoreHelper(store: Store<any>, paths: string[]) {
   const storeHelper: any = (path: string) => {
     return newStoreHelper(store, [...storeHelper._paths, path]);
   };
+  storeHelper.__proto__ = _StoreHelper.prototype;
 
   storeHelper._store = store;
   storeHelper._paths = paths;
-
-  Object.keys(_StoreHelper.prototype).forEach(key => {
-    if (key === "state" || key === "getters") {
-      Object.defineProperty(storeHelper, key, {
-        get: () => _StoreHelper.prototype[key],
-        enumerable: true,
-        configurable: true
-      });
-    } else {
-      storeHelper[key] = (_StoreHelper.prototype as any)[key];
-    }
-  });
 
   return storeHelper;
 }
