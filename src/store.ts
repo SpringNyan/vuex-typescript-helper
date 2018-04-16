@@ -9,7 +9,7 @@ const isProxySupported = typeof Proxy === "function";
 
 export type StoreState<
   TModule extends Module<any, any, any, any, any>
-> = ModuleState<TModule["state"]> &
+> = ModuleState<TModule> &
   {
     [K in keyof TModule["modules"]]: TModule["modules"][K] extends Module<
       any,
