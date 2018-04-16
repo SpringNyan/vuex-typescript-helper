@@ -22,15 +22,15 @@ export type StoreState<
       : never
   };
 
-export type StoreHelper<TModule extends Module<any, any, any, any, any>> = {
-  <TPath extends keyof TModule["modules"]>(
+export interface StoreHelper<TModule extends Module<any, any, any, any, any>> {
+  readonly state: StoreState<TModule>;
+  readonly getters: GetterValueTree<TModule["getters"]>;
+
+  path<TPath extends keyof TModule["modules"]>(
     path: TPath
   ): TModule["modules"][TPath] extends Module<any, any, any, any, any>
     ? StoreHelper<TModule["modules"][TPath]>
     : never;
-
-  readonly state: StoreState<TModule>;
-  readonly getters: GetterValueTree<TModule["getters"]>;
 
   path<
     TLocalModule extends Module<any, any, any, any, any> = Module<
@@ -53,15 +53,30 @@ export type StoreHelper<TModule extends Module<any, any, any, any, any>> = {
   ): StoreHelper<TModule>;
 
   unregisterModule(): StoreHelper<TModule>;
-};
+}
 
-class _StoreHelper extends Function {
-  private _paths!: string[];
+export interface StoreHelperFactory<
+  TModule extends Module<any, any, any, any, any>
+> {
+  (): StoreHelper<TModule>;
+  <TPath extends keyof TModule["modules"]>(
+    path: TPath
+  ): TModule["modules"][TPath] extends Module<any, any, any, any, any>
+    ? StoreHelperFactory<TModule["modules"][TPath]>
+    : never;
+}
 
-  private _store!: Store<any>;
+class _StoreHelper {
+  private readonly _store: Store<any>;
+  private readonly _paths: string[];
 
   private _getters: GetterValueTree<any> | undefined;
   private _rootGetters: GetterValueTree<any> | undefined;
+
+  constructor(store: Store<any>, paths: string[]) {
+    this._store = store;
+    this._paths = paths;
+  }
 
   public get state() {
     let state = this._store.state;
@@ -118,7 +133,7 @@ class _StoreHelper extends Function {
   }
 
   public path(path: string) {
-    return newStoreHelper(this._store, [...this._paths, path]);
+    return new _StoreHelper(this._store, [...this._paths, path]);
   }
 
   public dispatch(type: string, payload: any, options?: DispatchOptions) {
@@ -153,20 +168,23 @@ class _StoreHelper extends Function {
   }
 }
 
-function newStoreHelper(store: Store<any>, paths: string[]) {
-  const storeHelper: any = (path: string) => {
-    return newStoreHelper(store, [...storeHelper._paths, path]);
-  };
-  storeHelper.__proto__ = _StoreHelper.prototype;
-
-  storeHelper._store = store;
-  storeHelper._paths = paths;
-
-  return storeHelper;
-}
-
 export function createStoreHelper<
   TModule extends Module<any, any, any, any, any>
 >(store: Store<any>): StoreHelper<TModule> {
-  return newStoreHelper(store, []);
+  return new _StoreHelper(store, []) as any;
+}
+
+function _createStoreHelperFactory<
+  TModule extends Module<any, any, any, any, any>
+>(store: Store<any>, paths: string[]): StoreHelperFactory<TModule> {
+  return (path?: string) =>
+    path != null
+      ? _createStoreHelperFactory(store, [...paths, path])
+      : (new _StoreHelper(store, paths) as any);
+}
+
+export function createStoreHelperFactory<
+  TModule extends Module<any, any, any, any, any>
+>(store: Store<any>): StoreHelperFactory<TModule> {
+  return _createStoreHelperFactory(store, []);
 }

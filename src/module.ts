@@ -25,13 +25,13 @@ export type ModuleState<
   TModule extends Module<any, any, any, any, any>
 > = TModule extends Module<infer TState, any, any, any, any> ? TState : never;
 
-export type ModuleBuilder<
+export interface ModuleBuilder<
   TState,
   TGetterTree extends GetterTree,
   TMutationTree extends MutationTree,
   TActionTree extends ActionTree,
   TModuleTree extends ModuleTree
-> = {
+> {
   getter<TKey extends string, TValue>(
     key: TKey,
     getter: Getter<TState, GetterValueTree<TGetterTree>, TValue>
@@ -95,7 +95,7 @@ export type ModuleBuilder<
   >;
 
   build(): Module<TState, TGetterTree, TMutationTree, TActionTree, TModuleTree>;
-};
+}
 
 class _ModuleBuilder {
   private _module: Module<any, any, any, any, any> = {
