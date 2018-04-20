@@ -158,7 +158,13 @@ class _StoreHelper {
     module: Module<any, any, any, any, any>,
     options?: ModuleOptions
   ) {
-    this._store.registerModule(this._paths, module, options);
+    this._store.registerModule(
+      this._paths,
+      Object.assign({}, module, {
+        namespaced: true
+      }),
+      options
+    );
     return this;
   }
 
