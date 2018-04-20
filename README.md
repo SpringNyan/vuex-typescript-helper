@@ -1,3 +1,5 @@
 # vuex-typescript-helper
 
-Helper for Vuex with TypeScript
+Namespaced store helper for Vuex with TypeScript
+
+Usage: see test/test.ts
