@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import Vue from "vue";
 import Vuex, { Store } from "vuex";
-import { createModuleBuilder, createStoreHelperFactory } from "../lib";
+import { createModuleBuilder, createNamespacedStoreFactory } from "../lib";
 
 Vue.use(Vuex);
 
@@ -68,7 +68,7 @@ describe("vuex-typescript-helper", () => {
       ...moduleRoot
     });
 
-    const factory = createStoreHelperFactory<typeof moduleRoot>(store);
+    const factory = createNamespacedStoreFactory<typeof moduleRoot>(store);
     const moduleAHelper = factory("moduleA")();
     const moduleBHelper = factory("moduleB")();
     const moduleRootHelper = factory();

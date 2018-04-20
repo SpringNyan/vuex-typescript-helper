@@ -22,14 +22,16 @@ export type StoreState<
       : never
   };
 
-export interface StoreHelper<TModule extends Module<any, any, any, any, any>> {
+export interface NamespacedStore<
+  TModule extends Module<any, any, any, any, any>
+> {
   readonly state: StoreState<TModule>;
   readonly getters: GetterValueTree<TModule["getters"]>;
 
   path<TPath extends keyof TModule["modules"]>(
     path: TPath
   ): TModule["modules"][TPath] extends Module<any, any, any, any, any>
-    ? StoreHelper<TModule["modules"][TPath]>
+    ? NamespacedStore<TModule["modules"][TPath]>
     : never;
 
   path<
@@ -42,7 +44,7 @@ export interface StoreHelper<TModule extends Module<any, any, any, any, any>> {
     >
   >(
     path: string
-  ): StoreHelper<TLocalModule>;
+  ): NamespacedStore<TLocalModule>;
 
   dispatch: Dispatch<TModule["actions"]>;
   commit: Commit<TModule["mutations"]>;
@@ -50,23 +52,23 @@ export interface StoreHelper<TModule extends Module<any, any, any, any, any>> {
   registerModule<TModule extends Module<any, any, any, any, any>>(
     module: TModule,
     options?: ModuleOptions
-  ): StoreHelper<TModule>;
+  ): NamespacedStore<TModule>;
 
-  unregisterModule(): StoreHelper<TModule>;
+  unregisterModule(): NamespacedStore<TModule>;
 }
 
-export interface StoreHelperFactory<
+export interface NamespacedStoreFactory<
   TModule extends Module<any, any, any, any, any>
 > {
-  (): StoreHelper<TModule>;
+  (): NamespacedStore<TModule>;
   <TPath extends keyof TModule["modules"]>(
     path: TPath
   ): TModule["modules"][TPath] extends Module<any, any, any, any, any>
-    ? StoreHelperFactory<TModule["modules"][TPath]>
+    ? NamespacedStoreFactory<TModule["modules"][TPath]>
     : never;
 }
 
-class _StoreHelper {
+class _NamespacedStore {
   private readonly _store: Store<any>;
   private readonly _paths: string[];
 
@@ -133,7 +135,7 @@ class _StoreHelper {
   }
 
   public path(path: string) {
-    return new _StoreHelper(this._store, [...this._paths, path]);
+    return new _NamespacedStore(this._store, [...this._paths, path]);
   }
 
   public dispatch(type: string, payload: any, options?: DispatchOptions) {
@@ -174,23 +176,17 @@ class _StoreHelper {
   }
 }
 
-export function createStoreHelper<
+function _createNamespacedStoreFactory<
   TModule extends Module<any, any, any, any, any>
->(store: Store<any>): StoreHelper<TModule> {
-  return new _StoreHelper(store, []) as any;
-}
-
-function _createStoreHelperFactory<
-  TModule extends Module<any, any, any, any, any>
->(store: Store<any>, paths: string[]): StoreHelperFactory<TModule> {
+>(store: Store<any>, paths: string[]): NamespacedStoreFactory<TModule> {
   return (path?: string) =>
     path != null
-      ? _createStoreHelperFactory(store, [...paths, path])
-      : (new _StoreHelper(store, paths) as any);
+      ? _createNamespacedStoreFactory(store, [...paths, path])
+      : (new _NamespacedStore(store, paths) as any);
 }
 
-export function createStoreHelperFactory<
+export function createNamespacedStoreFactory<
   TModule extends Module<any, any, any, any, any>
->(store: Store<any>): StoreHelperFactory<TModule> {
-  return _createStoreHelperFactory(store, []);
+>(store: Store<any>): NamespacedStoreFactory<TModule> {
+  return _createNamespacedStoreFactory(store, []);
 }
