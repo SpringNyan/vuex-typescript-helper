@@ -85,11 +85,11 @@ return /******/ (function(modules) { // webpackBootstrap
 /*!**********************!*\
   !*** ./lib/index.js ***!
   \**********************/
-/*! exports provided: createModuleBuilder, createNamespacedStoreFactory */
+/*! exports provided: default, createModuleBuilder, createNamespacedStoreFactory */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _module__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./module */ \"./lib/module.js\");\n/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, \"createModuleBuilder\", function() { return _module__WEBPACK_IMPORTED_MODULE_0__[\"createModuleBuilder\"]; });\n\n/* harmony import */ var _store__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./store */ \"./lib/store.js\");\n/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, \"createNamespacedStoreFactory\", function() { return _store__WEBPACK_IMPORTED_MODULE_1__[\"createNamespacedStoreFactory\"]; });\n\n\r\n\r\n\n\n//# sourceURL=webpack://vuex-typescript-helper/./lib/index.js?");
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _store__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./store */ \"./lib/store.js\");\n/* harmony import */ var _module__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./module */ \"./lib/module.js\");\n/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, \"createModuleBuilder\", function() { return _module__WEBPACK_IMPORTED_MODULE_1__[\"createModuleBuilder\"]; });\n\n/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, \"createNamespacedStoreFactory\", function() { return _store__WEBPACK_IMPORTED_MODULE_0__[\"createNamespacedStoreFactory\"]; });\n\n\r\nvar VuexTypeScriptHelper = /** @class */ (function () {\r\n    function VuexTypeScriptHelper() {\r\n    }\r\n    VuexTypeScriptHelper.install = function (_Vue) {\r\n        _Vue.mixin({\r\n            beforeCreate: function () {\r\n                if (this.$store) {\r\n                    this.$storeFactory = Object(_store__WEBPACK_IMPORTED_MODULE_0__[\"createNamespacedStoreFactory\"])(this.$store);\r\n                }\r\n            }\r\n        });\r\n    };\r\n    return VuexTypeScriptHelper;\r\n}());\r\n/* harmony default export */ __webpack_exports__[\"default\"] = (VuexTypeScriptHelper);\r\n\r\n\r\n\n\n//# sourceURL=webpack://vuex-typescript-helper/./lib/index.js?");
 
 /***/ }),
 
