@@ -126,9 +126,11 @@ class _ModuleBuilder {
   }
 
   public module(key: string, module: Module<any, any, any, any, any>) {
-    this._module.modules[key] = Object.assign({}, module, {
+    this._module.modules[key] = {
+      ...module,
       namespaced: true
-    });
+    };
+
     return this;
   }
 
