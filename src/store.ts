@@ -5,6 +5,7 @@ import { GetterValueTree } from "./getter";
 import { Module, ModuleState } from "./module";
 import { Commit } from "./mutation";
 
+declare const Proxy: any;
 const isProxySupported = typeof Proxy === "function";
 
 export type StoreState<
@@ -117,7 +118,7 @@ class _NamespacedStore {
 
         const getters = {};
         Object.keys(this._store.getters)
-          .filter((key) => key.startsWith(prefix))
+          .filter((key) => key.lastIndexOf(prefix, 0) === 0)
           .forEach((key) => {
             Object.defineProperty(getters, key.substring(prefix.length), {
               get: () => {
@@ -162,9 +163,10 @@ class _NamespacedStore {
   ) {
     this._store.registerModule(
       this._paths,
-      Object.assign({}, module, {
+      {
+        ...module,
         namespaced: true
-      }),
+      },
       options
     );
     return this;
